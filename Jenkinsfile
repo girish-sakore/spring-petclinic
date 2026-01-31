@@ -23,13 +23,21 @@ pipeline {
                 sh 'mvn test'
             }
         }
-        stage('SonarQube Scan') {
-            steps {
-                echo "======== Running SonarQube Scan ========"
-                withSonarQubeEnv('SonarQube') {
-                    sh 'mvn sonar:sonar'
+        stage("Sonarqube Analysis "){
+            steps{
+                withSonarQubeEnv('sonar-server') {
+                    sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName= petshop \
+                    -Dsonar.java.binaries=. \
+                    -Dsonar.projectKey= petshop '''
                 }
             }
+        }
+        stage("quality gate"){
+            steps {
+                script {
+                  waitForQualityGate abortPipeline: false, credentialsId: 'sonar-token'
+                }
+           }
         }
         stage('Build with Maven') {
             steps {
