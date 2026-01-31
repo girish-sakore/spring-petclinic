@@ -5,7 +5,6 @@ pipeline {
         DOCKER_IMAGE = 'your-docker-image-name' 
     }
     stages {
-      stages{
         stage("Git Checkout"){
             steps{
                 git branch: 'main', changelog: false, poll: false, url: 'https://github.com/girish-sakore/spring-petclinic.git'
