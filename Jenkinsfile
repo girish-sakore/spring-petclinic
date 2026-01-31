@@ -1,32 +1,72 @@
-pipeline{
+pipeline {
     agent any
-    stages{
-        stage("Build"){
+    environment {
+        SONARQUBE_SERVER = 'http://localhost:9000'
+        DOCKER_IMAGE = 'your-docker-image-name' 
+    }
+    stages {
+      stages{
+        stage("Git Checkout"){
             steps{
-                echo "========executing A========"
+                git branch: 'main', changelog: false, poll: false, url: 'https://github.com/girish-sakore/spring-petclinic.git'
             }
-            post{
-                always{
-                    echo "========always========"
+        }
+
+        stage('Compile with Maven') {
+            steps {
+                echo "======== Compiling with Maven ========"
+                sh 'mvn clean compile'
+            }
+        }
+        stage('Run Tests') {
+            steps {
+                echo "======== Running Tests ========"
+                sh 'mvn test'
+            }
+        }
+        stage('SonarQube Scan') {
+            steps {
+                echo "======== Running SonarQube Scan ========"
+                withSonarQubeEnv('SonarQube') {
+                    sh 'mvn sonar:sonar'
                 }
-                success{
-                    echo "========A executed successfully========"
-                }
-                failure{
-                    echo "========A execution failed========"
-                }
+            }
+        }
+        stage('Build with Maven') {
+            steps {
+                echo "======== Building with Maven ========"
+                sh 'mvn package'
+            }
+        }
+        stage('Docker Image Creation') {
+            steps {
+                echo "======== Creating Docker Image ========"
+                sh 'docker build -t $DOCKER_IMAGE .'
+            }
+        }
+        stage('Trivy Scan') {
+            steps {
+                echo "======== Running Trivy Scan ========"
+                sh 'trivy image $DOCKER_IMAGE'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                echo "======== Deploying Application ========"
+                // Add your deployment commands here (e.g., kubectl, docker-compose, etc.)
+                sh 'kubectl apply -f deployment.yaml' // Example for Kubernetes
             }
         }
     }
-    post{
-        always{
-            echo "========always========"
+    post {
+        always {
+            echo "======== Pipeline Completed ========"
         }
-        success{
-            echo "========pipeline executed successfully ========"
+        success {
+            echo "======== Pipeline Executed Successfully ========"
         }
-        failure{
-            echo "========pipeline execution failed========"
+        failure {
+            echo "======== Pipeline Execution Failed ========"
         }
     }
 }
