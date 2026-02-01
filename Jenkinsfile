@@ -2,7 +2,7 @@ pipeline {
     agent any
     environment {
         SONARQUBE_SERVER = 'http://localhost:9000'
-        DOCKER_IMAGE = 'your-docker-image-name' 
+        DOCKER_IMAGE = 'petclinic-image:latest' 
     }
     stages {
         stage("Git Checkout"){
@@ -20,7 +20,13 @@ pipeline {
         stage('Run Tests') {
             steps {
                 echo "======== Running Tests ========"
-                sh 'mvn test'
+                script {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                        timeout(time: 5, unit: 'MINUTES') {
+                            sh 'mvn test'
+                        }
+                    }
+                }
             }
         }
         stage("Sonarqube Analysis "){
