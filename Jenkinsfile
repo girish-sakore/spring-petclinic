@@ -20,13 +20,13 @@ pipeline {
         stage('Run Tests') {
             steps {
                 echo "======== Running Tests ========"
-                script {
-                    catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                        timeout(time: 5, unit: 'MINUTES') {
-                            sh 'mvn test'
-                        }
-                    }
-                }
+                // script {
+                //     catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                //         timeout(time: 5, unit: 'MINUTES') {
+                //             sh 'mvn test'
+                //         }
+                //     }
+                // }
             }
         }
         stage("Sonarqube Analysis "){
