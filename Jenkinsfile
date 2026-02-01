@@ -2,6 +2,7 @@ pipeline {
     agent any
     environment {
         SONARQUBE_SERVER = 'http://localhost:9000'
+        SONARQUBE_CREDENTIALS = 'squ_1ba96ddad3ab5a739ecb747283bd9b33fbca5eae'
         DOCKER_IMAGE = 'petclinic-image:latest' 
     }
     stages {
@@ -31,10 +32,13 @@ pipeline {
         }
         stage("Sonarqube Analysis "){
             steps{
+                echo "======== Sonarqube Analysis ========"
                 withSonarQubeEnv('sonar-server') {
-                    sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName= petshop \
-                    -Dsonar.java.binaries=. \
-                    -Dsonar.projectKey= petshop '''
+                    sh ''' mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+                        -Dsonar.projectKey=petshop \
+                        -Dsonar.projectName='petshop' \
+                        -Dsonar.host.url=$SONARQUBE_SERVER \
+                        -Dsonar.token=$SONARQUBE_CREDENTIALS'''
                 }
             }
         }
